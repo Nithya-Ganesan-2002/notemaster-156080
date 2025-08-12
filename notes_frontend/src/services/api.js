@@ -6,7 +6,27 @@
  * Falls back to relative paths when the env var is not provided (same-origin).
  */
 
-const BASE_URL = (process && process.env && process.env.REACT_APP_API_BASE_URL) ? process.env.REACT_APP_API_BASE_URL : "";
+const BASE_URL = (() => {
+  // Safely read CRA-style env var at build time; avoid direct 'process' reference in browsers
+  const envBase =
+    typeof process !== "undefined" &&
+    process.env &&
+    process.env.REACT_APP_API_BASE_URL
+      ? process.env.REACT_APP_API_BASE_URL
+      : undefined;
+
+  if (envBase) return envBase;
+
+  // Optional runtime config injected via a global for non-CRA or runtime-based setups
+  const runtimeBase =
+    typeof window !== "undefined" &&
+    window.__APP_CONFIG__ &&
+    window.__APP_CONFIG__.API_BASE_URL
+      ? window.__APP_CONFIG__.API_BASE_URL
+      : undefined;
+
+  return runtimeBase || "";
+})();
 
 /**
  * Internal request wrapper with sensible defaults and error handling.
